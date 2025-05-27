@@ -104,9 +104,22 @@ pipeline {
     post {
         success {
             echo 'Deployment successful!'
+
+             emailext(
+            subject: 'Build Success: ${JOB_NAME} #${BUILD_NUMBER}',
+            body: "Good news! Build succeeded.\n\nCheck console: ${BUILD_URL}",
+            recipientProviders: [[$class: 'DevelopersRecipientProvider']],
+            to: 'sn3hashis@gmail.com'
+        )
         }
         failure {
             echo 'Deployment failed!'
+            emailext(
+            subject: 'Build Failed: ${JOB_NAME} #${BUILD_NUMBER}',
+            body: "Oops! Build failed.\n\nCheck console: ${BUILD_URL}",
+            recipientProviders: [[$class: 'DevelopersRecipientProvider']],
+            to: 'sn3hashis@gmail.com'
+        )
         }
     }
 } 
