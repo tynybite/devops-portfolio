@@ -1,0 +1,551 @@
+---
+import Layout from '../layouts/Layout.astro';
+import Terminal from '../components/Terminal.astro';
+import BootSequence from '../components/BootSequence.astro';
+import CommandLine from '../components/CommandLine.astro';
+import TerminalNeofetch from '../components/TerminalNeofetch.astro';
+import SkillsTable from '../components/SkillsTable.astro';
+import ProjectCard from '../components/ProjectCard.astro';
+import ExperienceTimeline from '../components/ExperienceTimeline.astro';
+import ContactForm from '../components/ContactForm.astro';
+
+// Content for the terminal sections
+const commands = [
+  { command: "help", description: "Display available commands" },
+  { command: "whoami", description: "About me" },
+  { command: "skills", description: "My technical skills" },
+  { command: "projects", description: "View my projects" },
+  { command: "experience", description: "My work experience" },
+  { command: "resume", description: "View and download my resume" },
+  { command: "contact", description: "How to reach me" },
+  { command: "clear", description: "Clear the terminal" },
+  { command: "neofetch", description: "Display system info" },
+  { command: "theme", description: "Change terminal theme (Usage: theme list | theme [name])" },
+];
+
+const aboutContent = `
+<div class="about-section flex flex-col sm:flex-row items-center sm:items-start gap-4">
+  <img 
+    src="https://media.licdn.com/dms/image/v2/D4D03AQGjOT2EYvIQMw/profile-displayphoto-shrink_200_200/profile-displayphoto-shrink_200_200/0/1666272015470?e=2147483647&v=beta&t=g-qx5rSD9mT_ZEQirGOQw1SRD0WzVojXf3dt7VuOWZU" 
+    alt="Snehashis Mukherjee"
+    class="w-48 h-48 sm:w-60 sm:h-60 rounded-full border-2 border-terminal-green"
+  />
+  <div class="about-content text-center sm:text-left">
+    Snehashis Mukherjee
+    DevOps Engineer at <a href="https://www.tcs.com" target="_blank" class="text-terminal-command hover:underline">TCS</a>
+
+    Location: Hyderabad, India
+    Email: sn3hashis@gmail.com
+    GitHub: github.com/sn3hashis
+
+    I'm a DevOps engineer with experience in building and maintaining
+    CI/CD pipelines, automating infrastructure deployment, and optimizing
+    cloud resources. My mission is to bridge the gap between development and
+    operations to create efficient, scalable, and reliable systems.
+  </div>
+</div>
+`;
+
+// Skills categories
+const skillsCategories = [
+  {
+    name: "CONTAINERS",
+    skills: ["Docker", "Kubernetes", "Helm", "Podman", "Docker Compose"]
+  },
+  {
+    name: "CI/CD",
+    skills: ["Jenkins", "GitLab CI", "GitHub Actions", "CircleCI", "ArgoCD"]
+  },
+  {
+    name: "CLOUD",
+    skills: ["AWS", "Azure", "GCP", "Terraform", "CloudFormation"]
+  },
+  {
+    name: "MONITORING",
+    skills: ["Prometheus", "Grafana", "ELK Stack", "Datadog", "New Relic"]
+  },
+  {
+    name: "LANGUAGES",
+    skills: ["Python", "Bash", "Go", "JavaScript", "YAML/HCL"]
+  },
+  {
+    name: "TOOLS",
+    skills: ["Git", "Ansible", "Packer", "Vault", "Linux/Unix"]
+  }
+];
+
+// Format skills content for terminal display
+const skillsContent = `
+<div class="skills-section bg-terminal-darkbg border border-terminal-green rounded-md">
+  <div class="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 gap-0">
+    ${skillsCategories.map((category, index) => `
+      <div class="category-block ${index % 2 === 0 ? 'border-r' : ''} ${index < 4 ? 'border-b' : ''} border-terminal-green/10">
+        <div class="category-name text-terminal-amber font-bold text-sm sm:text-base px-2">${category.name}</div>
+        <div class="skills-list">
+          ${category.skills.map(skill => {
+            // Get icon based on skill name
+            let icon = '';
+            const skillLower = skill.toLowerCase();
+            
+            // Map skills to their devicon classes
+            const iconMap = {
+              'docker': 'devicon-docker-plain',
+              'kubernetes': 'devicon-kubernetes-plain',
+              'jenkins': 'devicon-jenkins-plain',
+              'gitlab': 'devicon-gitlab-plain',
+              'github': 'devicon-github-plain',
+              'aws': 'devicon-amazonwebservices-plain',
+              'azure': 'devicon-azure-plain',
+              'terraform': 'devicon-terraform-plain',
+              'python': 'devicon-python-plain',
+              'go': 'devicon-go-plain',
+              'javascript': 'devicon-javascript-plain',
+              'git': 'devicon-git-plain',
+              'linux': 'devicon-linux-plain',
+              'prometheus': 'devicon-prometheus-original',
+              'grafana': 'devicon-grafana-original',
+              'ansible': 'devicon-ansible-plain',
+              'bash': 'devicon-bash-plain'
+            };
+
+            // Find the matching icon
+            for (const [key, value] of Object.entries(iconMap)) {
+              if (skillLower.includes(key)) {
+                icon = `<i class="${value} colored text-xl mr-2"></i>`;
+                break;
+              }
+            }
+
+            // If no icon found, use a default terminal icon
+            if (!icon) {
+              icon = '<span class="text-terminal-green text-xl mr-2">⌘</span>';
+            }
+
+            return `
+              <div class="skill-item text-sm sm:text-base flex items-center px-2 py-1 hover:bg-terminal-green/10">
+                ${icon}${skill}
+              </div>
+            `;
+          }).join('')}
+        </div>
+      </div>
+    `).join('')}
+  </div>
+</div>
+`;
+
+// Projects content
+const projectsContent = [
+  {
+    name: "Kubernetes Autoscaler",
+    description: "Custom Kubernetes autoscaling solution that dynamically adjusts resources based on application-specific metrics.",
+    tech: ["Kubernetes", "Go", "Prometheus", "Python"],
+    link: "https://github.com/johndoe-devops/k8s-autoscaler"
+  },
+  {
+    name: "Infrastructure as Code Template Library",
+    description: "Reusable Terraform modules for quickly deploying standard cloud infrastructure with security best practices.",
+    tech: ["Terraform", "AWS", "Azure", "GitLab CI"],
+    link: "https://github.com/johndoe-devops/iac-templates"
+  },
+  {
+    name: "CI/CD Pipeline Generator",
+    description: "Tool that generates optimized CI/CD pipeline configurations based on project language and requirements.",
+    tech: ["Python", "Jenkins", "GitHub Actions", "Docker"],
+    link: "https://github.com/johndoe-devops/pipeline-generator"
+  },
+  {
+    name: "Cloud Cost Optimizer",
+    description: "Automated tooling to identify and reduce cloud resource waste, with intelligent scheduling and rightsizing.",
+    tech: ["Python", "AWS SDK", "Terraform", "React"],
+    link: "https://github.com/johndoe-devops/cloud-cost-optimizer"
+  }
+];
+
+// Experience content
+const experienceItems = [
+  {
+    period: "2021-NOW",
+    title: "DevOps Engineer",
+    company: "TCS",
+    achievements: [
+      "Implemented GitOps with ArgoCD reducing deployment errors by 78%",
+      "Built K8s clusters handling 50M+ monthly requests",
+      "Reduced cloud costs 32% via infrastructure optimization",
+      "Led team of 5 engineers modernizing deployment pipeline"
+    ]
+  },
+  {
+    period: "2019-21",
+    title: "DevOps Engineer",
+    company: "CloudScale",
+    achievements: [
+      "Containerized legacy apps into microservices architecture",
+      "Automated infra provisioning with Terraform/Ansible",
+      "Set up Prometheus/Grafana monitoring stack",
+      "Cut deployment time from days to minutes with CI/CD"
+    ]
+  },
+  {
+    period: "2017-19",
+    title: "Systems Engineer",
+    company: "DataSys",
+    achievements: [
+      "Managed Linux infrastructure for enterprise apps",
+      "Built Jenkins pipelines for continuous integration",
+      "Reduced system outages 45% with proactive monitoring",
+      "Automated routine tasks saving 15+ hrs/week"
+    ]
+  }
+];
+
+// Format experience content for terminal display
+const experienceContent = `
+<div class="experience-section">
+  ${experienceItems.map(exp => `
+    <div class="experience-item px-1 bg-terminal-darkbg border border-terminal-green rounded-md mb-1">
+      <div class="header text-[11px] sm:text-xs flex flex-wrap items-center font-mono leading-tight">
+        <span class="text-terminal-amber">[${exp.period}]</span>
+        <span class="text-terminal-green ml-1">${exp.title}</span>
+        <span class="text-terminal-text mx-1">@</span>
+        <span class="text-terminal-amber">${exp.company}</span>
+      </div>
+      <div class="achievements ml-2 sm:ml-3">
+        ${exp.achievements.map(achievement => `
+          <div class="achievement-line text-[11px] sm:text-xs flex items-center leading-tight py-0.5">
+            <span class="text-terminal-green mr-1">$</span>
+            <span class="text-terminal-text font-mono">${achievement}</span>
+          </div>
+        `).join('')}
+      </div>
+    </div>
+  `).join('')}
+</div>`;
+
+// Resume content
+const resumeContent = `
+<div class="resume-section flex flex-col items-center">
+  <div class="resume-info text-center mb-2">
+    <p class="text-terminal-text mb-1 text-[11px] sm:text-sm">View or download my detailed resume:</p>
+  </div>
+  <a href="https://drive.google.com/your-resume-link" target="_blank" 
+     class="resume-button px-3 py-1.5 sm:px-4 sm:py-2 bg-terminal-darkbg border border-terminal-green rounded-md 
+            text-terminal-green hover:bg-terminal-green hover:text-terminal-darkbg transition-all duration-200 
+            flex items-center gap-2 text-[11px] sm:text-sm">
+    <span class="text-xs">📄</span>
+    <span>Open Resume</span>
+  </a>
+</div>
+`;
+
+// Update neofetch display
+const showNeofetch = () => {
+  const date = new Date();
+  const uptime = date.toLocaleTimeString();
+  const currentYear = date.getFullYear();
+  const experience = currentYear - 2017; // Based on your earliest experience date
+
+  return `
+    <div class="neofetch flex flex-col md:flex-row gap-6 bg-terminal-darkbg p-4 sm:p-6 rounded-lg border border-terminal-green">
+      <div class="ascii-art text-terminal-green font-mono">
+        <pre class="text-xs sm:text-sm leading-none">
+⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢀⣀⣀⣀⣀⠀⠀⠀⠀⠀⠀⠀⠀⠀
+⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢀⣤⣶⠾⠛⠋⠉⠉⠉⠙⠛⠷⣦⣄⡀⠀⠀⠀⠀
+⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⣠⣾⠟⠉⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠈⠙⠿⣤⡀⠀⠀
+⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢀⣼⠟⠁⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠈⢻⡄⠀
+⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢠⡾⠁⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢻⡀
+⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢠⡟⠀⠀⠀⠀⠀⠀⠀⠀⢀⣠⣤⣤⣤⣄⡀⠀⠀⠀⠀⠀⠀⠘⡇
+⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⣾⠁⠀⠀⠀⠀⠀⠀⢀⣴⠟⠉⠀⠀⠀⠈⠙⢷⡄⠀⠀⠀⠀⠀⢸
+⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢸⡇⠀⠀⠀⠀⠀⠀⢀⡾⠁⠀⠀⠀⠀⠀⠀⠀⠈⣿⠀⠀⠀⠀⠀⢸
+⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢸⡇⠀⠀⠀⠀⠀⠀⣼⠁⠀⠀⠀⠀⠀⠀⠀⠀⠀⢿⠀⠀⠀⠀⠀⢸
+⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠘⣧⠀⠀⠀⠀⠀⠀⢷⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢸⠀⠀⠀⠀⢀⡟
+⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢹⣆⠀⠀⠀⠀⠀⠘⣧⠀⠀⠀⠀⠀⠀⠀⠀⠀⡾⠀⠀⠀⢠⡾⠁
+⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠹⣦⡀⠀⠀⠀⠀⠙⢷⣄⠀⠀⠀⠀⠀⢀⣴⠃⠀⢀⣴⠟⠁⠀
+⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠈⠛⢶⣤⣀⠀⠀⠀⠙⠻⠷⠶⠶⠾⠛⠁⣠⡶⠛⠁⠀⠀⠀
+⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠈⠙⠻⠷⣶⣦⣤⣤⣤⣤⡴⠾⠛⠉⠀⠀⠀⠀⠀⠀
+⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠉⠉⠉⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀</pre>
+      </div>
+      
+      <div class="system-info flex-1 grid grid-cols-1 sm:grid-cols-2 gap-y-1 gap-x-8 text-sm sm:text-base">
+        <div class="col-span-2 mb-2">
+          <span class="text-terminal-amber font-bold text-base sm:text-lg">Snehashis Mukherjee</span>
+          <span class="text-terminal-text">@</span>
+          <span class="text-terminal-green">devops-engineer</span>
+        </div>
+
+        <div class="info-section col-span-2 sm:col-span-1">
+          <div class="mb-3">
+            <div class="text-terminal-amber mb-1 font-bold">Professional Info</div>
+            <div><span class="text-terminal-green">Role:</span> DevOps Engineer at TCS</div>
+            <div><span class="text-terminal-green">Experience:</span> ${experience}+ years</div>
+            <div><span class="text-terminal-green">Location:</span> Hyderabad, India</div>
+          </div>
+
+          <div class="mb-3">
+            <div class="text-terminal-amber mb-1 font-bold">Core Skills</div>
+            <div><span class="text-terminal-green">Infrastructure:</span> AWS, K8s, Docker</div>
+            <div><span class="text-terminal-green">CI/CD:</span> Jenkins, GitLab, ArgoCD</div>
+            <div><span class="text-terminal-green">Languages:</span> Python, Go, Bash</div>
+          </div>
+        </div>
+
+        <div class="info-section col-span-2 sm:col-span-1">
+          <div class="mb-3">
+            <div class="text-terminal-amber mb-1 font-bold">System Stats</div>
+            <div><span class="text-terminal-green">Uptime:</span> ${uptime}</div>
+            <div><span class="text-terminal-green">Shell:</span> zsh 5.8</div>
+            <div><span class="text-terminal-green">Terminal:</span> Portfolio v1.0</div>
+          </div>
+
+          <div class="mb-3">
+            <div class="text-terminal-amber mb-1 font-bold">Contact</div>
+            <div><span class="text-terminal-green">Email:</span> sn3hashis@gmail.com</div>
+            <div><span class="text-terminal-green">GitHub:</span> /sn3hashis</div>
+            <div><span class="text-terminal-green">LinkedIn:</span> /snehashis</div>
+          </div>
+        </div>
+
+        <div class="col-span-2 mt-2 text-xs sm:text-sm">
+          <span class="text-terminal-amber">Current Project:</span> 
+          <span class="text-terminal-text">Building scalable infrastructure and automating deployments</span>
+        </div>
+      </div>
+    </div>
+  `;
+};
+
+// Update projects content to be more mobile-friendly
+const showProjects = () => {
+  let projectsHtml = `<div class="projects-grid grid grid-cols-1 gap-2">`;
+  projectsContent.forEach((project) => {
+    projectsHtml += `
+      <div class="project-card border border-terminal-green bg-terminal-darkbg p-2 sm:p-3 rounded">
+        <div class="project-header mb-1">
+          <span class="text-terminal-amber font-bold text-sm">${project.name}</span>
+        </div>
+        <div class="project-description mb-1 text-terminal-text text-[11px] sm:text-sm">
+          ${project.description}
+        </div>
+        <div class="project-tech mb-1">
+          <span class="text-terminal-amber text-[11px] sm:text-sm">Technologies: </span>
+          <span class="text-terminal-text text-[11px] sm:text-sm">${project.tech.join(', ')}</span>
+        </div>
+        <div class="project-link">
+          <a href="${project.link}" target="_blank" class="text-terminal-command hover:underline text-[11px] sm:text-sm break-all">
+            ${project.link}
+          </a>
+        </div>
+      </div>
+    `;
+  });
+  projectsHtml += `</div>`;
+  return projectsHtml;
+};
+
+const contactContent = `
+<div class="contact-section">
+  <p class="mb-3 text-[11px] sm:text-sm">To contact me, use one of the following methods:</p>
+  
+  <div class="contact-info mb-3 text-[11px] sm:text-sm">
+    <div class="mb-1"><span class="text-terminal-amber">Email:</span> sn3hashis@gmail.com</div>
+    <div class="mb-1"><span class="text-terminal-amber">LinkedIn:</span> linkedin.com/in/snehashis</div>
+    <div class="mb-1"><span class="text-terminal-amber">GitHub:</span> github.com/sn3hashis</div>
+  </div>
+  
+  <p class="mb-3 text-[11px] sm:text-sm">Or send a message directly:</p>
+  
+  <div class="contact-form bg-terminal-darkbg border border-terminal-green rounded-md p-2 sm:p-3">
+    <form class="flex flex-col gap-2">
+      <input type="text" placeholder="Name" class="bg-transparent border border-terminal-green rounded px-2 py-1 text-[11px] sm:text-sm text-terminal-text focus:outline-none focus:border-terminal-amber">
+      <input type="email" placeholder="Email" class="bg-transparent border border-terminal-green rounded px-2 py-1 text-[11px] sm:text-sm text-terminal-text focus:outline-none focus:border-terminal-amber">
+      <textarea placeholder="Message" rows="4" class="bg-transparent border border-terminal-green rounded px-2 py-1 text-[11px] sm:text-sm text-terminal-text focus:outline-none focus:border-terminal-amber"></textarea>
+      <button type="submit" class="bg-terminal-green text-terminal-darkbg px-3 py-1.5 rounded text-[11px] sm:text-sm hover:opacity-90 transition-opacity">Send Message</button>
+    </form>
+  </div>
+</div>
+`;
+---
+
+<Layout title="DevOps Engineer Portfolio | Terminal">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/devicons/devicon@latest/devicon.min.css">
+  <BootSequence />
+  <Terminal 
+    aboutContent={aboutContent}
+    skillsContent={skillsContent}
+    projectsContent={showProjects()}
+    experienceContent={experienceContent}
+    contactContent={contactContent}
+    resumeContent={resumeContent}
+    commands={commands}
+  />
+</Layout>
+
+<style is:global>
+  :root {
+    --terminal-text: #E0E0E0;
+    --terminal-bg: #000000;
+    --terminal-green: #4AF626;
+    --terminal-amber: #FFB000;
+    --terminal-error: #FF0000;
+  }
+
+  body {
+    background-color: var(--terminal-bg);
+    color: var(--terminal-text);
+    transition: all 0.3s ease;
+  }
+
+  .text-terminal-text {
+    color: var(--terminal-text);
+  }
+
+  .text-terminal-green {
+    color: var(--terminal-green);
+  }
+
+  .text-terminal-amber {
+    color: var(--terminal-amber);
+  }
+
+  .text-terminal-error {
+    color: var(--terminal-error);
+  }
+
+  .bg-terminal-darkbg {
+    background-color: var(--terminal-bg);
+  }
+
+  .border-terminal-green {
+    border-color: var(--terminal-green);
+  }
+
+  /* Add box shadow for light themes */
+  .terminal-screen {
+    box-shadow: 0 0 15px rgba(var(--terminal-green-rgb, 74, 246, 38), 0.15);
+    border: 1px solid rgba(var(--terminal-green-rgb, 74, 246, 38), 0.3);
+    transition: all 0.3s ease;
+  }
+
+  /* Ensure links are visible in light themes */
+  a {
+    color: var(--terminal-green);
+    transition: color 0.3s ease;
+  }
+
+  a:hover {
+    opacity: 0.8;
+  }
+
+  /* Ensure command hints are visible */
+  #command-hint {
+    color: var(--terminal-text);
+    opacity: 0.5;
+  }
+
+  /* Ensure input text is visible */
+  .terminal-input-area input {
+    color: var(--terminal-amber);
+  }
+
+  /* Ensure scrollbar colors match theme */
+  #terminal-output::-webkit-scrollbar-track {
+    background: rgba(var(--terminal-text-rgb, 224, 224, 224), 0.1);
+  }
+
+  #terminal-output::-webkit-scrollbar-thumb {
+    background: rgba(var(--terminal-green-rgb, 74, 246, 38), 0.3);
+    border-radius: 4px;
+  }
+
+  /* Rest of your existing styles */
+  .skills-section, .experience-section, .contact-section {
+    animation: fadeIn 0.5s ease-in;
+  }
+  
+  @keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+  }
+
+  .skills-section {
+    transition: all 0.3s ease;
+    margin: 0;
+    padding: 0;
+  }
+
+  .category-block {
+    transition: all 0.2s ease;
+  }
+
+  .category-name {
+    padding-top: 2px;
+    padding-bottom: 2px;
+    background: rgba(74, 246, 38, 0.05);
+    border-bottom: 1px solid rgba(74, 246, 38, 0.1);
+  }
+
+  .skill-item {
+    transition: transform 0.2s ease;
+    margin: 0;
+    padding-top: 1px;
+    padding-bottom: 1px;
+    white-space: nowrap;
+    line-height: 1;
+  }
+
+  .skill-item:hover {
+    transform: translateX(2px);
+    color: var(--terminal-green);
+    background: rgba(74, 246, 38, 0.05);
+  }
+
+  /* DevIcon colors */
+  .colored {
+    color: #2496ED; /* Docker blue */
+    font-size: 1.1rem;
+    display: inline-flex;
+    align-items: center;
+  }
+
+  .ascii-art pre {
+    line-height: 1.2;
+    font-size: 0.7rem;
+  }
+
+  @media (min-width: 768px) {
+    .ascii-art pre {
+      font-size: 0.8rem;
+    }
+  }
+
+  /* Add new responsive border handling */
+  @media (min-width: 1024px) {
+    .category-block:nth-child(3n) {
+      border-right: none !important;
+    }
+    
+    .category-block:nth-last-child(-n+3) {
+      border-bottom: none !important;
+    }
+  }
+
+  @media (min-width: 640px) and (max-width: 1023px) {
+    .category-block:nth-child(2n) {
+      border-right: none !important;
+    }
+    
+    .category-block:nth-last-child(-n+2) {
+      border-bottom: none !important;
+    }
+  }
+
+  @media (max-width: 639px) {
+    .category-block:nth-child(2n) {
+      border-right: none !important;
+    }
+    
+    .category-block:nth-last-child(-n+2) {
+      border-bottom: none !important;
+    }
+  }
+</style>

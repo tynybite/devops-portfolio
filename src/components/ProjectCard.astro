@@ -1,0 +1,43 @@
+---
+// ProjectCard component - Displays a project in terminal style
+export interface Props {
+  name: string;
+  description: string;
+  tech: string[];
+  link: string;
+}
+
+const { name, description, tech, link } = Astro.props;
+---
+
+<div class="project-card border border-terminal-green bg-terminal-darkbg p-2 rounded mb-2">
+  <div class="project-header flex items-center">
+    <span class="text-terminal-green mr-1">$</span>
+    <span class="text-terminal-amber font-bold">{name}</span>
+  </div>
+  <div class="project-description pl-3 text-terminal-text text-sm">
+    {description}
+  </div>
+  <div class="project-tech pl-3">
+    <span class="text-terminal-amber text-sm">Tech:</span>
+    <span class="text-terminal-text text-sm">{tech.join(', ')}</span>
+  </div>
+  <div class="project-link pl-3">
+    <span class="text-terminal-green mr-1">$</span>
+    <a href={link} target="_blank" class="text-terminal-command hover:underline text-sm">
+      {link}
+    </a>
+  </div>
+</div>
+
+<style>
+  .project-card {
+    transition: all 0.2s ease;
+  }
+  
+  .project-card:hover {
+    box-shadow: 0 0 10px rgba(74, 246, 38, 0.15);
+    transform: translateY(-1px);
+    border-color: rgba(74, 246, 38, 0.6);
+  }
+</style>

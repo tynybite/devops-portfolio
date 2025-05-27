@@ -1,0 +1,51 @@
+---
+// CommandLine component - Creates a command prompt line with animated typing
+export interface Props {
+  command: string;
+  delay?: number;
+  prompt?: string;
+  autoType?: boolean;
+  commandClass?: string;
+}
+
+const { 
+  command, 
+  delay = 0, 
+  prompt = "snehashis@devops-terminal:~ $", 
+  autoType = false,
+  commandClass = "text-terminal-amber" 
+} = Astro.props;
+---
+
+<div class="command-line-container my-2">
+  <span class="text-terminal-green">{prompt}</span>
+  <span class={`command-text ${commandClass} ml-1`} data-command={command} data-delay={delay} data-auto-type={autoType}>{!autoType && command}</span>
+  <span class="cursor ml-px h-4 w-2 bg-terminal-green inline-block"></span>
+</div>
+
+<script>
+  // Initialize all command lines with typing effect
+  document.addEventListener('DOMContentLoaded', () => {
+    const commandLines = document.querySelectorAll('.command-text[data-auto-type="true"]');
+    
+    commandLines.forEach((el) => {
+      const commandEl = el as HTMLElement;
+      const command = commandEl.dataset.command || '';
+      const delay = parseInt(commandEl.dataset.delay || '0');
+      
+      setTimeout(() => {
+        let index = 0;
+        commandEl.textContent = '';
+        
+        const typeInterval = setInterval(() => {
+          if (index < command.length) {
+            commandEl.textContent += command.charAt(index);
+            index++;
+          } else {
+            clearInterval(typeInterval);
+          }
+        }, 50);
+      }, delay);
+    });
+  });
+</script>

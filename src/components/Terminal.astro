@@ -1,0 +1,549 @@
+---
+// Terminal component - main interface for the portfolio
+const { 
+  aboutContent, 
+  skillsContent, 
+  projectsContent, 
+  experienceContent, 
+  contactContent,
+  resumeContent,
+  commands 
+} = Astro.props;
+
+// Available themes
+const themes = [
+  { name: "cyberpunk", text: "#E0E0E0", bg: "#000000", green: "#4AF626", amber: "#FFB000", error: "#FF0000" },
+  { name: "matrix", text: "#00FF00", bg: "#001100", green: "#00FF00", amber: "#00FF00", error: "#FF0000" },
+  { name: "ubuntu", text: "#FFFFFF", bg: "#2C001E", green: "#4EE037", amber: "#E95420", error: "#FF0000" },
+  { name: "dracula", text: "#F8F8F2", bg: "#282A36", green: "#50FA7B", amber: "#FFB86C", error: "#FF5555" },
+  { name: "monokai", text: "#F8F8F2", bg: "#272822", green: "#A6E22E", amber: "#FD971F", error: "#F92672" },
+  { name: "light", text: "#2D3748", bg: "#FFFFFF", green: "#48BB78", amber: "#D69E2E", error: "#E53E3E" },
+  { name: "github-light", text: "#24292E", bg: "#F6F8FA", green: "#28A745", amber: "#F1C40F", error: "#D73A49" },
+  { name: "solarized-light", text: "#657B83", bg: "#FDF6E3", green: "#859900", amber: "#B58900", error: "#DC322F" }
+];
+
+const availableCommands = [
+  'help', 'whoami', 'skills', 'projects', 'experience', 
+  'resume', 'contact', 'clear', 'neofetch', 'theme'
+];
+---
+
+<div class="terminal-container flex flex-col w-full min-h-screen p-2 sm:p-4 overflow-hidden">
+  <div class="terminal-header flex items-center gap-1 mb-2">
+    <div class="h-2 w-2 sm:h-3 sm:w-3 rounded-full bg-terminal-error"></div>
+    <div class="h-2 w-2 sm:h-3 sm:w-3 rounded-full bg-terminal-amber"></div>
+    <div class="h-2 w-2 sm:h-3 sm:w-3 rounded-full bg-terminal-green"></div>
+    <span class="ml-2 text-[10px] sm:text-xs text-terminal-text opacity-70">snehashis@devops-terminal:~</span>
+  </div>
+  
+  <div class="terminal-screen flex-1 bg-terminal-darkbg p-2 sm:p-4 rounded-md overflow-hidden flex flex-col" id="terminal-screen">
+    <div id="terminal-output" class="flex-1 overflow-y-auto pb-2 sm:pb-4 terminal-text text-terminal-text text-sm">
+      <p class="mb-2">Welcome to DevOpsTerminal v1.0</p>
+      <p class="mb-2">Type <span class="text-terminal-amber">'help'</span> to see available commands.</p>
+    </div>
+    
+    <div class="terminal-input-area flex items-center text-sm">
+      <div class="prompt flex items-center">
+        <span class="text-terminal-green whitespace-nowrap text-sm">$</span>
+        <span class="blink-cursor"></span>
+      </div>
+      <div class="flex-1 relative ml-2">
+        <input 
+          type="text" 
+          id="terminal-input" 
+          class="bg-transparent border-none outline-none text-terminal-amber w-full focus:ring-0 pl-0 text-sm"
+          placeholder="Type a command..."
+          autocomplete="off"
+        />
+        <div id="command-hint" class="absolute top-0 left-0 text-terminal-text opacity-30 pointer-events-none text-sm"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script define:vars={{ availableCommands, commands, aboutContent, skillsContent, projectsContent, experienceContent, contactContent, resumeContent, themes }}>
+  // DOM elements
+  const terminalOutput = document.getElementById('terminal-output');
+  const terminalInput = /** @type {HTMLInputElement} */ (document.getElementById('terminal-input'));
+  const terminalScreen = document.getElementById('terminal-screen');
+  const commandHint = document.getElementById('command-hint');
+  
+  // Create theme command hints
+  const themeCommands = themes.map(theme => `theme ${theme.name}`);
+  
+  // Command history functionality
+  let commandHistory = [];
+  let historyIndex = -1;
+
+  // Function to focus input
+  const focusInput = () => {
+    if (terminalInput) {
+      terminalInput.focus();
+    }
+  };
+
+  // Keep focus on input
+  document.addEventListener('keydown', (e) => {
+    if (e.target !== terminalInput) {
+      focusInput();
+    }
+  });
+
+  // Focus input when terminal is clicked
+  terminalScreen.addEventListener('click', (e) => {
+    e.preventDefault();
+    focusInput();
+  });
+
+  // Auto-focus input on page load
+  window.addEventListener('DOMContentLoaded', () => {
+    focusInput();
+  });
+
+  // Function to add command to terminal
+  const addCommand = (command) => {
+    const commandLine = document.createElement('div');
+    commandLine.className = 'command-line mb-2 flex';
+    commandLine.innerHTML = `
+      <span class="text-terminal-green">snehashis@devops-terminal:~ $</span>
+      <span class="text-terminal-amber ml-1">${command}</span>
+    `;
+    terminalOutput.appendChild(commandLine);
+  };
+
+  // Function to add response to terminal
+  const addResponse = (response) => {
+    const responseElement = document.createElement('div');
+    responseElement.className = 'response mb-4 mt-0';
+    
+    // If the response is HTML, set it directly
+    if (response.trim().startsWith('<')) {
+      responseElement.innerHTML = response;
+    } else {
+      // Otherwise, preserve newlines and formatting
+      responseElement.innerHTML = response
+        .split('\n')
+        .map(line => `<div>${line || '&nbsp;'}</div>`)
+        .join('');
+    }
+    
+    terminalOutput.appendChild(responseElement);
+    terminalOutput.scrollTop = terminalOutput.scrollHeight;
+  };
+
+  // Function to clear the terminal
+  const clearTerminal = () => {
+    terminalOutput.innerHTML = `
+      <p class="mb-2">Welcome to DevOpsTerminal v1.0</p>
+      <p class="mb-2">Type <span class="text-terminal-amber">'help'</span> to see available commands.</p>
+    `;
+  };
+
+  // Function to show projects
+  const showProjects = () => {
+    let projectsHtml = `<div class="projects-grid grid grid-cols-1 md:grid-cols-2 gap-4">`;
+    projectsContent.forEach((project) => {
+      projectsHtml += `
+        <div class="project-card border border-terminal-green bg-terminal-darkbg p-4 rounded">
+          <div class="project-header mb-2">
+            <span class="text-terminal-amber font-bold">${project.name}</span>
+          </div>
+          <div class="project-description mb-2 text-terminal-text">
+            ${project.description}
+          </div>
+          <div class="project-tech mb-2">
+            <span class="text-terminal-amber">Technologies: </span>
+            <span class="text-terminal-text">${project.tech.join(', ')}</span>
+          </div>
+          <div class="project-link">
+            <a href="${project.link}" target="_blank" class="text-terminal-command hover:underline">
+              ${project.link}
+            </a>
+          </div>
+        </div>
+      `;
+    });
+    projectsHtml += `</div>`;
+    return projectsHtml;
+  };
+
+  // Function to show system info
+  const showNeofetch = () => {
+    const date = new Date();
+    const uptime = date.toLocaleTimeString();
+    const currentYear = date.getFullYear();
+    const experience = currentYear - 2017;
+
+    return `
+      <div class="neofetch flex flex-col md:flex-row gap-3 bg-terminal-darkbg p-2 sm:p-3 rounded-lg border border-terminal-green">
+        <div class="ascii-art text-terminal-green font-mono">
+          <pre class="text-xs sm:text-sm leading-[0.8]">
+⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢀⣀⣀⣀⣀⠀⠀⠀⠀⠀⠀⠀⠀⠀
+⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢀⣤⣶⠾⠛⠋⠉⠉⠉⠙⠛⠷⣦⣄⡀⠀⠀⠀⠀
+⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⣠⣾⠟⠉⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠈⠙⠿⣤⡀⠀⠀
+⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢀⣼⠟⠁⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠈⢻⡄⠀
+⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢠⡾⠁⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢻⡀
+⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢠⡟⠀⠀⠀⠀⠀⠀⠀⠀⢀⣠⣤⣤⣤⣄⡀⠀⠀⠀⠀⠀⠀⠘⡇
+⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⣾⠁⠀⠀⠀⠀⠀⠀⢀⣴⠟⠉⠀⠀⠀⠈⠙⢷⡄⠀⠀⠀⠀⠀⢸
+⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢸⡇⠀⠀⠀⠀⠀⠀⢀⡾⠁⠀⠀⠀⠀⠀⠀⠀⠈⣿⠀⠀⠀⠀⠀⢸
+⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢸⡇⠀⠀⠀⠀⠀⠀⣼⠁⠀⠀⠀⠀⠀⠀⠀⠀⠀⢿⠀⠀⠀⠀⠀⢸
+⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠘⣧⠀⠀⠀⠀⠀⠀⢷⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢸⠀⠀⠀⠀⢀⡟
+⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢹⣆⠀⠀⠀⠀⠀⠘⣧⠀⠀⠀⠀⠀⠀⠀⠀⠀⡾⠀⠀⠀⢠⡾⠁
+⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠹⣦⡀⠀⠀⠀⠀⠙⢷⣄⠀⠀⠀⠀⠀⢀⣴⠃⠀⢀⣴⠟⠁⠀
+⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠈⠛⢶⣤⣀⠀⠀⠀⠙⠻⠷⠶⠶⠾⠛⠁⣠⡶⠛⠁⠀⠀⠀
+⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠈⠙⠻⠷⣶⣦⣤⣤⣤⣤⡴⠾⠛⠉⠀⠀⠀⠀⠀⠀
+⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠉⠉⠉⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀</pre>
+        </div>
+        
+        <div class="system-info flex-1 grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-0.5 text-sm sm:text-base">
+          <div class="col-span-2 mb-1">
+            <span class="text-terminal-amber font-bold text-base sm:text-lg">Snehashis Mukherjee</span>
+            <span class="text-terminal-text">@</span>
+            <span class="text-terminal-green">devops-engineer</span>
+          </div>
+
+          <div class="info-section col-span-2 sm:col-span-1">
+            <div class="mb-2">
+              <div class="text-terminal-amber font-bold leading-tight">Professional Info</div>
+              <div class="leading-tight"><span class="text-terminal-green">Role:</span> DevOps Engineer at TCS</div>
+              <div class="leading-tight"><span class="text-terminal-green">Experience:</span> ${experience}+ years</div>
+              <div class="leading-tight"><span class="text-terminal-green">Location:</span> Hyderabad, India</div>
+            </div>
+
+            <div class="mb-2">
+              <div class="text-terminal-amber font-bold leading-tight">Core Skills</div>
+              <div class="leading-tight"><span class="text-terminal-green">Infrastructure:</span> AWS, K8s, Docker</div>
+              <div class="leading-tight"><span class="text-terminal-green">CI/CD:</span> Jenkins, GitLab, ArgoCD</div>
+              <div class="leading-tight"><span class="text-terminal-green">Languages:</span> Python, Go, Bash</div>
+            </div>
+          </div>
+
+          <div class="info-section col-span-2 sm:col-span-1">
+            <div class="mb-2">
+              <div class="text-terminal-amber font-bold leading-tight">System Stats</div>
+              <div class="leading-tight"><span class="text-terminal-green">Uptime:</span> ${uptime}</div>
+              <div class="leading-tight"><span class="text-terminal-green">Shell:</span> zsh 5.8</div>
+              <div class="leading-tight"><span class="text-terminal-green">Terminal:</span> Portfolio v1.0</div>
+            </div>
+
+            <div class="mb-2">
+              <div class="text-terminal-amber font-bold leading-tight">Contact</div>
+              <div class="leading-tight"><span class="text-terminal-green">Email:</span> sn3hashis@gmail.com</div>
+              <div class="leading-tight"><span class="text-terminal-green">GitHub:</span> /sn3hashis</div>
+              <div class="leading-tight"><span class="text-terminal-green">LinkedIn:</span> /snehashis</div>
+            </div>
+          </div>
+
+          <div class="col-span-2 mt-1 text-xs sm:text-sm leading-tight">
+            <span class="text-terminal-amber">Current Project:</span> 
+            <span class="text-terminal-text">Building scalable infrastructure and automating deployments</span>
+          </div>
+        </div>
+      </div>
+    `;
+  };
+
+  // Function to change theme
+  const changeTheme = (themeName) => {
+    const theme = themes.find(t => t.name === themeName);
+    if (!theme) {
+      addResponse(`Theme '${themeName}' not found. Use 'theme list' to see available themes.`);
+      return;
+    }
+
+    const root = document.documentElement;
+    root.style.setProperty('--terminal-text', theme.text);
+    root.style.setProperty('--terminal-bg', theme.bg);
+    root.style.setProperty('--terminal-green', theme.green);
+    root.style.setProperty('--terminal-amber', theme.amber);
+    root.style.setProperty('--terminal-error', theme.error);
+
+    // Add RGB versions of colors for rgba usage
+    const getRGB = (hex) => {
+      const r = parseInt(hex.slice(1, 3), 16);
+      const g = parseInt(hex.slice(3, 5), 16);
+      const b = parseInt(hex.slice(5, 7), 16);
+      return `${r}, ${g}, ${b}`;
+    };
+
+    root.style.setProperty('--terminal-text-rgb', getRGB(theme.text));
+    root.style.setProperty('--terminal-green-rgb', getRGB(theme.green));
+    
+    addResponse(`Theme changed to ${themeName}`);
+  };
+
+  // Function to list themes
+  const listThemes = () => {
+    const themeList = themes.map(theme => `<span class="text-terminal-amber">${theme.name}</span>`).join(', ');
+    addResponse(`Available themes: ${themeList}\nUse 'theme [name]' to change theme.`);
+  };
+
+  // Update command hint functionality
+  const getMatchingCommands = (input) => {
+    input = input.toLowerCase();
+    if (input.startsWith('theme ')) {
+      const themeName = input.slice(6);
+      return themeCommands.filter(cmd => cmd.toLowerCase().startsWith(input));
+    }
+    return availableCommands.filter(cmd => cmd.startsWith(input));
+  };
+
+  // Process command input
+  const processCommand = (command) => {
+    command = command.trim().toLowerCase();
+    
+    if (command === '') return;
+    
+    // Add command to history
+    commandHistory.push(command);
+    historyIndex = commandHistory.length;
+    
+    // Add command to terminal
+    addCommand(command);
+    
+    // Process commands
+    if (command === 'theme list') {
+      listThemes();
+    } else if (command.startsWith('theme ')) {
+      const themeName = command.split(' ')[1];
+      if (themeName === 'list') {
+        listThemes();
+      } else {
+        changeTheme(themeName);
+      }
+    } else {
+      // Process other commands
+      switch (command) {
+        case 'help':
+          const helpContent = `
+            <p class="mb-1">Available commands:</p>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-2">
+              ${commands.map(cmd => `
+                <div class="flex">
+                  <span class="text-terminal-command w-24">${cmd.command}</span>
+                  <span class="text-terminal-text">${cmd.description}</span>
+                </div>
+              `).join('')}
+            </div>
+          `;
+          addResponse(helpContent);
+          break;
+        
+        case 'whoami':
+          addResponse(aboutContent);
+          break;
+        
+        case 'skills':
+          addResponse(skillsContent);
+          break;
+        
+        case 'projects':
+          addResponse(showProjects());
+          break;
+        
+        case 'experience':
+          addResponse(experienceContent);
+          break;
+        
+        case 'resume':
+          addResponse(resumeContent);
+          break;
+        
+        case 'contact':
+          addResponse(contactContent);
+          break;
+        
+        case 'clear':
+          clearTerminal();
+          break;
+
+        case 'neofetch':
+          addResponse(showNeofetch());
+          break;
+        
+        default:
+          addResponse(`Command not found: ${command}. Type 'help' to see available commands.`);
+      }
+    }
+    
+    // Clear input
+    terminalInput.value = '';
+  };
+
+  const showCommandHint = (input) => {
+    if (!input) {
+      commandHint.textContent = '';
+      return;
+    }
+
+    const matches = getMatchingCommands(input);
+    if (matches.length > 0) {
+      const firstMatch = matches[0];
+      if (firstMatch.startsWith(input)) {
+        // Position the hint text after the input text
+        commandHint.style.left = `${input.length}ch`;
+        commandHint.textContent = firstMatch.slice(input.length);
+      } else {
+        commandHint.textContent = '';
+      }
+    } else {
+      commandHint.textContent = '';
+    }
+  };
+
+  const handleTabCompletion = (input) => {
+    const matches = getMatchingCommands(input);
+    if (matches.length === 1) {
+      terminalInput.value = matches[0];
+      commandHint.textContent = '';
+    }
+  };
+
+  // Update event listeners
+  terminalInput.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') {
+      processCommand(terminalInput.value);
+      commandHint.textContent = '';
+    } else if (e.key === 'Tab') {
+      e.preventDefault();
+      handleTabCompletion(terminalInput.value);
+    } else if (e.key === 'ArrowUp') {
+      e.preventDefault();
+      if (historyIndex > 0) {
+        historyIndex--;
+        terminalInput.value = commandHistory[historyIndex];
+        commandHint.textContent = '';
+      }
+    } else if (e.key === 'ArrowDown') {
+      e.preventDefault();
+      if (historyIndex < commandHistory.length - 1) {
+        historyIndex++;
+        terminalInput.value = commandHistory[historyIndex];
+        commandHint.textContent = '';
+      } else {
+        historyIndex = commandHistory.length;
+        terminalInput.value = '';
+        commandHint.textContent = '';
+      }
+    }
+  });
+
+  terminalInput.addEventListener('input', (e) => {
+    showCommandHint(e.target.value);
+  });
+</script>
+
+<style>
+  /* Terminal styles */
+  .terminal-container {
+    font-family: 'JetBrains Mono', monospace;
+    background-color: var(--terminal-bg);
+    transition: all 0.3s ease;
+  }
+  
+  .terminal-screen {
+    box-shadow: 0 0 15px rgba(var(--terminal-green-rgb, 74, 246, 38), 0.15);
+    border: 1px solid rgba(var(--terminal-green-rgb, 74, 246, 38), 0.3);
+    position: relative;
+    background-color: var(--terminal-bg);
+    transition: all 0.3s ease;
+  }
+  
+  .terminal-text {
+    line-height: 1.4;
+    white-space: pre-wrap;
+    color: var(--terminal-text);
+    word-break: break-word;
+  }
+  
+  /* Hide scrollbar but keep functionality */
+  #terminal-output::-webkit-scrollbar {
+    width: 4px;
+  }
+  
+  #terminal-output::-webkit-scrollbar-track {
+    background: rgba(var(--terminal-text-rgb, 224, 224, 224), 0.1);
+  }
+  
+  #terminal-output::-webkit-scrollbar-thumb {
+    background: rgba(var(--terminal-green-rgb, 74, 246, 38), 0.3);
+    border-radius: 4px;
+  }
+  
+  /* Blinking cursor */
+  .blink-cursor {
+    display: inline-block;
+    width: 0.5em;
+    height: 1em;
+    background-color: var(--terminal-green);
+    margin-left: 4px;
+    animation: blink 1s step-end infinite;
+  }
+  
+  @keyframes blink {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0; }
+  }
+  
+  /* Project cards */
+  .project-card {
+    transition: all 0.2s ease;
+    background-color: var(--terminal-bg);
+  }
+  
+  .project-card:hover {
+    box-shadow: 0 0 10px rgba(var(--terminal-green-rgb, 74, 246, 38), 0.3);
+    transform: translateY(-2px);
+  }
+  
+  #command-hint {
+    font-family: 'JetBrains Mono', monospace;
+    color: var(--terminal-text);
+  }
+
+  /* Terminal input area */
+  .terminal-input-area {
+    position: relative;
+    min-height: 1.5em;
+    display: flex;
+    align-items: center;
+  }
+
+  .terminal-input-area .prompt {
+    display: flex;
+    align-items: center;
+    white-space: nowrap;
+  }
+
+  .terminal-input-area input {
+    background: transparent;
+    z-index: 2;
+    color: var(--terminal-amber);
+    caret-color: transparent;
+  }
+
+  .terminal-input-area input::placeholder {
+    color: var(--terminal-text);
+    opacity: 0.5;
+  }
+
+  #command-hint {
+    font-family: 'JetBrains Mono', monospace;
+    z-index: 1;
+  }
+
+  @media (max-width: 640px) {
+    .terminal-text {
+      font-size: 0.875rem;
+      line-height: 1.3;
+    }
+    
+    .terminal-input-area input::placeholder {
+      font-size: 0.875rem;
+    }
+    
+    #command-hint {
+      font-size: 0.875rem;
+    }
+  }
+</style>

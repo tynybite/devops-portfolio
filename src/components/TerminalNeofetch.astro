@@ -1,0 +1,59 @@
+---
+// TerminalNeofetch component - Shows system info in neofetch style
+export interface Props {
+  name: string;
+  title: string;
+  location: string;
+}
+
+const { name = "Snehashis Mukherjee, title = "DevOps Engineer", location = "Hyderabad, IN" } = Astro.props;
+
+// Get current date for uptime
+const startDate = new Date();
+const formattedDate = startDate.toLocaleDateString('en-US', {
+  year: 'numeric',
+  month: 'short',
+  day: 'numeric'
+});
+---
+
+<div class="neofetch-container flex flex-col md:flex-row gap-4 my-4">
+  <div class="ascii-art text-terminal-green font-mono whitespace-pre">
+    <pre>
+        .--.
+       |o_o |     {name}
+       |:_/ |     {title}
+      //   \\ \\    -------------
+     (|     | )   Location: {location}
+    /'\\_   _/\`\\   Uptime: {formattedDate}
+    \\___)=(___/   Shell: /bin/devops
+    </pre>
+  </div>
+  <div class="system-info grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-1">
+    <div><span class="text-terminal-amber">OS:</span> DevOpsOS 3.14.15</div>
+    <div><span class="text-terminal-amber">Languages:</span> Python, Bash, Go</div>
+    <div><span class="text-terminal-amber">Kernel:</span> CI/CD-5.15</div>
+    <div><span class="text-terminal-amber">Containers:</span> Docker, K8s</div>
+    <div><span class="text-terminal-amber">Uptime:</span> 5+ years</div>
+    <div><span class="text-terminal-amber">Clouds:</span> AWS, GCP, Azure</div>
+    <div><span class="text-terminal-amber">Shell:</span> DevOps/ZSH</div>
+    <div><span class="text-terminal-amber">Monitoring:</span> Prometheus</div>
+    <div><span class="text-terminal-amber">Resolution:</span> Complex Problems</div>
+    <div><span class="text-terminal-amber">Automation:</span> Terraform, Ansible</div>
+    <div><span class="text-terminal-amber">Theme:</span> CyberGreen</div>
+    <div><span class="text-terminal-amber">Pipelines:</span> Jenkins, GitHub Actions</div>
+    <div><span class="text-terminal-amber">CPU:</span> Problem-Solver i9</div>
+    <div><span class="text-terminal-amber">Memory:</span> Unlimited</div>
+  </div>
+</div>
+
+<style>
+  .neofetch-container {
+    animation: fadeIn 0.5s ease-in;
+  }
+  
+  @keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+  }
+</style>

@@ -1,0 +1,94 @@
+---
+// Boot Sequence component - shows terminal startup animation
+---
+
+<div id="boot-sequence" class="fixed inset-0 z-50 bg-terminal-darkbg flex flex-col items-center justify-center text-terminal-green font-mono p-4 overflow-hidden">
+  <div class="w-full max-w-3xl mx-auto">
+    <pre id="boot-text" class="text-xs md:text-sm whitespace-pre-wrap"></pre>
+  </div>
+</div>
+
+<script>
+  const bootText = document.getElementById('boot-text');
+  const bootSequence = document.getElementById('boot-sequence');
+
+  const bootMessages = [
+    "BIOS Version 1.0.5, Copyright (C) 2025",
+    "Press DEL to enter setup, F12 for boot menu",
+    "Initializing hardware...",
+    "",
+    "CPU: AMD Ryzen 9 7950X @ 5.2GHz",
+    "Memory Test: 64GB OK",
+    "Primary Master Disk: 2TB NVMe SSD",
+    "",
+    "Loading operating system...",
+    "DevOpsOS v3.14.15 (c) 2025",
+    "Loading kernel...",
+    "",
+    "Starting system services...",
+    "[ OK ] Started Terminal Service",
+    "[ OK ] Started Network Manager",
+    "[ OK ] Started Security Services",
+    "[ OK ] Started Portfolio Services",
+    "",
+    "Connecting to portfolio database...",
+    "Connection established",
+    "Loading portfolio assets...",
+    "",
+    "Welcome to DevOpsTerminal v1.0",
+    "Authenticating user...",
+    "Authentication successful",
+    "",
+    "Initializing terminal interface...",
+    "Loading portfolio data...",
+    "Ready to showcase skills and experience",
+    "",
+    "Starting interactive session..."
+  ];
+
+  const bootSequenceAnimation = async () => {
+    let fullText = "";
+    
+    for (const line of bootMessages) {
+      fullText += line + "\n";
+      bootText.textContent = fullText;
+      
+      // Simulate random typing speeds for more realism
+      const delay = line === "" ? 300 : Math.random() * 50 + 20;
+      await new Promise(resolve => setTimeout(resolve, delay));
+    }
+    
+    // Small pause at the end before fading out
+    await new Promise(resolve => setTimeout(resolve, 800));
+    
+    // Fade out the boot sequence
+    bootSequence.classList.add('animate-fade-out');
+    
+    // Remove the boot sequence after fade completes
+    setTimeout(() => {
+      bootSequence.style.display = 'none';
+    }, 1000);
+  };
+
+  // Start the boot sequence animation when the page loads
+  document.addEventListener('DOMContentLoaded', bootSequenceAnimation);
+</script>
+
+<style>
+  #boot-sequence {
+    font-family: 'JetBrains Mono', monospace;
+  }
+  
+  .animate-fade-out {
+    animation: fadeOut 1s forwards;
+  }
+  
+  @keyframes fadeOut {
+    from { opacity: 1; }
+    to { opacity: 0; }
+  }
+
+  #boot-text {
+    line-height: 1.2;
+  }
+</style>

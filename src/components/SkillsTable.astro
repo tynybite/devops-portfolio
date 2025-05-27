@@ -1,0 +1,58 @@
+---
+// SkillsTable component - Renders skills in ASCII table format
+export interface SkillCategory {
+  name: string;
+  skills: string[];
+}
+
+export interface Props {
+  categories: SkillCategory[];
+  columns?: number;
+}
+
+const { categories, columns = 3 } = Astro.props;
+
+// Helpers for ASCII table generation
+const maxSkillLength = Math.max(...categories.map(cat => 
+  Math.max(cat.name.length, ...cat.skills.map(skill => skill.length))
+));
+
+const columnWidth = maxSkillLength + 4; // 4 is for padding
+const getLineOfLength = (length: number) => '+' + '-'.repeat(length) + '+';
+const getCategoryHeader = (name: string, width: number) => {
+  const padding = width - name.length;
+  const leftPad = Math.floor(padding / 2);
+  const rightPad = padding - leftPad;
+  return '|' + ' '.repeat(leftPad) + name + ' '.repeat(rightPad) + '|';
+};
+const getSkillRow = (skill: string, width: number) => {
+  const padding = width - skill.length;
+  return '| ' + skill + ' '.repeat(padding - 1) + '|';
+};
+---
+
+<div class="skills-table font-mono whitespace-pre text-terminal-text my-4">
+  <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+    {categories.map(category => (
+      <div class="skill-category">
+        <pre>{getLineOfLength(columnWidth)}
+{getCategoryHeader(category.name, columnWidth)}
+{getLineOfLength(columnWidth)}
+{category.skills.map(skill => getSkillRow(skill, columnWidth)).join('\n')}
+{getLineOfLength(columnWidth)}</pre>
+      </div>
+    ))}
+  </div>
+</div>
+
+<style>
+  .skills-table {
+    font-size: 0.85rem;
+  }
+  
+  @media (max-width: 640px) {
+    .skills-table {
+      font-size: 0.7rem;
+    }
+  }
+</style>

@@ -1,0 +1,60 @@
+---
+// ExperienceTimeline component - Shows work experience as a terminal log
+export interface Experience {
+  period: string;
+  title: string;
+  company: string;
+  achievements: string[];
+}
+
+export interface Props {
+  experiences: Experience[];
+}
+
+const { experiences } = Astro.props;
+---
+
+<div class="experience-timeline bg-terminal-darkbg border border-terminal-green rounded-md">
+  {experiences.map((exp, index) => (
+    <div class="experience-item px-2 py-1">
+      <div class="header text-xs flex items-center font-mono">
+        <span class="text-terminal-amber">[{exp.period}]</span>
+        <span class="text-terminal-green ml-2">{exp.title}</span>
+        <span class="text-terminal-text mx-1">@</span>
+        <span class="text-terminal-amber">{exp.company}</span>
+      </div>
+      <div class="achievements ml-4">
+        {exp.achievements.map(achievement => (
+          <div class="achievement-line text-xs flex items-center">
+            <span class="text-terminal-green mr-1">$</span>
+            <span class="text-terminal-text font-mono">{achievement}</span>
+          </div>
+        ))}
+      </div>
+      {index !== experiences.length - 1 && (
+        <div class="border-t border-terminal-green opacity-5 mt-1"></div>
+      )}
+    </div>
+  ))}
+</div>
+
+<style>
+  .experience-timeline {
+    font-family: 'JetBrains Mono', monospace;
+  }
+
+  .achievement-line {
+    line-height: 1.1;
+    padding-top: 1px;
+  }
+
+  .achievement-line:hover {
+    background: rgba(74, 246, 38, 0.05);
+  }
+
+  .header {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+</style>
