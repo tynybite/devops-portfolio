@@ -2,7 +2,7 @@ pipeline {
     agent any
     
     environment {
-        GITHUB_REPO = 'your-github-username/portfolio'  // Replace with your repo
+        GITHUB_REPO = 'sn3hashis/portfolio'  // Replace with your repo
         DEPLOY_DIR = '/var/www/portfolio'
         GITHUB_TOKEN = credentials('github-token')  // Add this in Jenkins credentials
     }
