@@ -316,6 +316,8 @@ const availableCommands = [
       switch (command) {
         case 'help':
           const helpContent = `
+            <h2 class="text-terminal-amber">This is built using Astro and Dployed on GCP: Tech Stack: Astro, Tailwind CSS, and deployed on GCP with help of Jenkins and Github Actions as CI/CD Pipeline</h2>
+             <p class="text-terminal-amber">You can find the source code on <a href="https://github.com/sn3hashis/devops-portfolio" target="_blank" class="text-terminal-green">GitHub</a> Give a star if you like the Work! Always open to feedback and suggestions.</p>
             <p class="mb-1">Available commands:</p>
             <div class="grid grid-cols-1 md:grid-cols-2 gap-2">
               ${commands.map(cmd => `
