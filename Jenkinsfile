@@ -58,11 +58,11 @@ pipeline {
                     cp -r dist/* ${DEPLOY_DIR}/
                     
                     # Restart PM2 process if exists, or start new one
-                    if ~/.nvm/versions/node/v22.16.0/bin/pm2 list | grep -q "portfolio"; then
-                        ~/.nvm/versions/node/v22.16.0/bin/pm2 restart portfolio
+                    if pm2 list | grep -q "portfolio"; then
+                        pm2 restart portfolio
                     else
                         cd ${DEPLOY_DIR}
-                        ~/.nvm/versions/node/v22.16.0/bin/pm2 start npm --name "portfolio" -- start
+                        pm2 start npm --name "portfolio" -- start
                     fi
                 '''
             }
