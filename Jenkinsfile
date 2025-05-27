@@ -51,12 +51,11 @@ pipeline {
                 sh '''
                     # Ensure deploy directory exists
                     sudo mkdir -p ${DEPLOY_DIR}
-                    sudo chown -R jenkins:jenkins ${DEPLOY_DIR}
-                    
+                    sudo chown -R jenkins:jenkins ${DEPLOY_DIR}                    
                     # Copy files
                     rm -rf ${DEPLOY_DIR}/*
                     cp -r dist/* ${DEPLOY_DIR}/
-                    export PATH=$PATH:/home/snehashis/.nvm/versions/node/v22.16.0/bin
+                    
                     # Restart PM2 process if exists, or start new one
                     if pm2 list | grep -q "portfolio"; then
                         pm2 restart portfolio
