@@ -88,7 +88,8 @@ pipeline {
                     EOL
                     
                     # Start using PM2 with ecosystem file
-                    pm2 start ecosystem.config.js
+                    pm2 start "serve -s ${DEPLOY_DIR} -l 4321" --name portfolio
+
                     
                     # Save PM2 configuration
                     pm2 save
