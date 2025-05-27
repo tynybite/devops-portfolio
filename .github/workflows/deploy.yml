@@ -14,10 +14,10 @@ jobs:
       
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v9
+        uses: actions/checkout@v4
       
       - name: Setup Node.js
-        uses: actions/setup-node@v9
+        uses: actions/setup-node@v4
         with:
           node-version: '20'
           cache: 'npm'
@@ -29,7 +29,7 @@ jobs:
         run: npm run build
         
       - name: Upload artifact
-        uses: actions/upload-artifact@v9
+        uses: actions/upload-artifact@v4
         with:
           name: portfolio-dist
           path: dist/
