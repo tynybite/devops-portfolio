@@ -5,6 +5,8 @@ pipeline {
         GITHUB_REPO = 'sn3hashis/devops-portfolio'  // Replace with your repo
         DEPLOY_DIR = '/var/www/portfolio'
         GITHUB_TOKEN = credentials('github-token')  // Add this in Jenkins credentials
+        HOST = '0.0.0.0'  // Allow external connections
+        PORT = '4321'     // Astro port
     }
     
     stages {
@@ -49,20 +51,50 @@ pipeline {
         stage('Deploy') {
             steps {
                 sh '''
-                    # Ensure deploy directory exists
+                    # Ensure deploy directory exists with correct permissions
                     sudo mkdir -p ${DEPLOY_DIR}
-                    sudo chown -R jenkins:jenkins ${DEPLOY_DIR}                    
-                    # Copy files
-                    rm -rf ${DEPLOY_DIR}/*
-                    cp -r dist/* ${DEPLOY_DIR}/
+                    sudo chown -R nginx:nginx ${DEPLOY_DIR}
+                    sudo chmod -R 755 ${DEPLOY_DIR}
+                    
+                    # Copy files with sudo
+                    sudo rm -rf ${DEPLOY_DIR}/*
+                    sudo cp -r dist/* ${DEPLOY_DIR}/
+                    
                     export PATH=$PATH:/usr/local/bin
-                    # Restart PM2 process if exists, or start new one
+                    
+                    # Stop existing PM2 process if running
                     if pm2 list | grep -q "portfolio"; then
-                        pm2 restart portfolio
-                    else
-                        cd ${DEPLOY_DIR}
-                        pm2 start npm --name "portfolio" -- start
+                        pm2 delete portfolio
                     fi
+                    
+                    cd ${DEPLOY_DIR}
+                    # Ensure PM2 can access the directory
+                    sudo chown -R jenkins:jenkins ${DEPLOY_DIR}
+                    
+                    # Create ecosystem config
+                    cat > ecosystem.config.js << 'EOL'
+                    module.exports = {
+                      apps: [{
+                        name: 'portfolio',
+                        script: 'npm',
+                        args: 'start',
+                        env: {
+                          HOST: '0.0.0.0',
+                          PORT: '4321'
+                        },
+                        watch: false
+                      }]
+                    }
+                    EOL
+                    
+                    # Start using PM2 with ecosystem file
+                    pm2 start ecosystem.config.js
+                    
+                    # Save PM2 configuration
+                    pm2 save
+                    
+                    # Reset permissions after PM2 start
+                    sudo chown -R nginx:nginx ${DEPLOY_DIR}
                 '''
             }
         }
