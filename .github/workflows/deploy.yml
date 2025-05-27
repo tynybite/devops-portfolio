@@ -23,6 +23,18 @@ jobs:
         run: npm run build
       - name: Verify build output
         run: ls -la dist/
+      - name: Verify build output
+        run: |
+          if [ ! -d "dist" ]; then
+            echo "Error: dist/ directory not found. Build might have failed."
+            exit 1
+          fi
+      
+      - name: Archive production artifacts
+        uses: actions/upload-artifact@v3
+        with:
+          name: dist
+          path: dist/
         
       - name: Archive production artifacts
         uses: actions/upload-artifact@v3
