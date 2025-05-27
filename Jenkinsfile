@@ -30,7 +30,12 @@ pipeline {
                     # Download artifact using GitHub API
                     ARTIFACT_URL=$(curl -H "Authorization: token ${GITHUB_TOKEN}" \
                         "https://api.github.com/repos/${GITHUB_REPO}/actions/artifacts" \
-                        | jq -r '.artifacts[0].archive_download_url')
+                        | jq -r '.artifacts[] | select(.name=="portfolio-dist") | .archive_download_url')
+                    
+                    if [ -z "$ARTIFACT_URL" ]; then
+                        echo "Error: Could not find portfolio-dist artifact"
+                        exit 1
+                    fi
                     
                     # Download and extract the artifact
                     curl -L -H "Authorization: token ${GITHUB_TOKEN}" \
